@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curious Cloud - 知的好奇心探索</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/cloud.css">
+  <link rel="stylesheet" href="css/article.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <div id="app">
+    <!-- ヘッダー -->
+    <header class="header">
+      <div class="header__logo">
+        <span class="header__icon">☁️</span>
+        <h1 class="header__title">Curious Cloud</h1>
+      </div>
+      <!-- レベルバッジ -->
+      <div class="level-badge" id="level-badge">
+        <span class="level-badge__icon" id="level-icon">🌱</span>
+        <div class="level-badge__info">
+          <span class="level-badge__title" id="level-title">好奇心の芽生え</span>
+          <div class="level-badge__bottom">
+            <span class="level-badge__level">Lv.<span id="level-number">1</span></span>
+            <div class="level-badge__progress">
+              <div class="level-badge__progress-bar" id="level-progress"></div>
+            </div>
+          </div>
+        </div>
+        <span class="level-badge__points" id="level-points">0pt</span>
+      </div>
+      <nav class="header__nav">
+        <button class="nav-btn" data-action="history" title="履歴">
+          <svg class="nav-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="nav-btn__label">履歴</span>
+        </button>
+        <button class="nav-btn" data-action="bookmarks" title="ブックマーク">
+          <svg class="nav-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span class="nav-btn__label">保存</span>
+        </button>
+        <button class="nav-btn" data-action="achievements" title="アチーブメント">
+          <svg class="nav-btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+          </svg>
+          <span class="nav-btn__label">実績</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="main">
+      <!-- オンボーディング画面 -->
+      <section id="onboarding-view" class="view">
+        <div class="onboarding">
+          <h2 class="onboarding__title">興味のあるテーマを選んでください</h2>
+          <p class="onboarding__subtitle">3つ以上選択すると、あなたに合ったトピックが表示されます</p>
+          <div class="interest-grid" id="interest-grid"></div>
+          <button class="btn btn--primary btn--large onboarding__submit" id="onboarding-submit" disabled>
+            探索を始める
+          </button>
+        </div>
+      </section>
+
+      <!-- クラウドビュー -->
+      <section id="cloud-view" class="view">
+        <div class="cloud-header">
+          <p class="cloud-header__greeting" id="greeting-text">今日は何に興味がありますか？</p>
+          <button class="btn btn--secondary btn--icon" id="refresh-btn" title="新しいトピックを表示">
+            <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M23 4v6h-6M1 20v-6h6"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            <span>再読み込み</span>
+          </button>
+        </div>
+        <div class="cloud-container" id="cloud-container">
+          <!-- ローディング表示（コンテナ内に配置） -->
+          <div class="cloud-loading" id="cloud-loading">
+            <div class="loading-spinner"></div>
+            <p>トピックを探しています...</p>
+          </div>
+          <!-- トピックカードがここに動的に生成される -->
+        </div>
+      </section>
+
+      <!-- 記事ビュー -->
+      <section id="article-view" class="view">
+        <div class="article-container" id="article-container">
+          <!-- 記事コンテンツがここに動的に生成される -->
+        </div>
+      </section>
+
+      <!-- 広げるビュー -->
+      <section id="expand-view" class="view">
+        <div class="expand-header">
+          <button class="btn btn--back" id="expand-back-btn">
+            <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span>戻る</span>
+          </button>
+          <p class="expand-header__source" id="expand-source"></p>
+        </div>
+        <div class="cloud-container" id="expand-container">
+          <!-- ローディング表示（コンテナ内に配置） -->
+          <div class="cloud-loading" id="expand-loading">
+            <div class="loading-spinner"></div>
+            <p>関連トピックを探しています...</p>
+          </div>
+          <!-- 関連トピックがここに表示される -->
+        </div>
+      </section>
+    </main>
+
+    <!-- 履歴パネル -->
+    <aside class="panel panel--history" id="history-panel">
+      <div class="panel__header">
+        <h2 class="panel__title">閲覧履歴</h2>
+        <button class="panel__close" data-action="close-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="panel__content" id="history-content">
+        <!-- 履歴がここに表示される -->
+      </div>
+    </aside>
+
+    <!-- ブックマークパネル -->
+    <aside class="panel panel--bookmarks" id="bookmarks-panel">
+      <div class="panel__header">
+        <h2 class="panel__title">ブックマーク</h2>
+        <button class="panel__close" data-action="close-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="panel__content" id="bookmarks-content">
+        <!-- ブックマークがここに表示される -->
+      </div>
+    </aside>
+
+    <!-- アチーブメントパネル -->
+    <aside class="panel panel--achievements" id="achievements-panel">
+      <div class="panel__header">
+        <h2 class="panel__title">アチーブメント</h2>
+        <button class="panel__close" data-action="close-panel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="panel__content" id="achievements-content">
+        <!-- 統計サマリー -->
+        <div class="stats-summary" id="stats-summary">
+          <div class="stats-summary__level">
+            <span class="stats-summary__level-icon" id="stats-level-icon">🌱</span>
+            <div class="stats-summary__level-info">
+              <span class="stats-summary__level-name" id="stats-level-name">好奇心の芽生え</span>
+              <span class="stats-summary__level-number">Lv.<span id="stats-level-number">1</span></span>
+            </div>
+            <span class="stats-summary__points" id="stats-points">0pt</span>
+          </div>
+          <div class="stats-summary__progress">
+            <div class="stats-summary__progress-bar" id="stats-progress"></div>
+            <span class="stats-summary__progress-text" id="stats-progress-text">次のレベルまで 100pt</span>
+          </div>
+          <div class="stats-summary__grid">
+            <div class="stats-summary__item">
+              <span class="stats-summary__value" id="stats-articles">0</span>
+              <span class="stats-summary__label">記事</span>
+            </div>
+            <div class="stats-summary__item">
+              <span class="stats-summary__value" id="stats-expands">0</span>
+              <span class="stats-summary__label">広げる</span>
+            </div>
+            <div class="stats-summary__item">
+              <span class="stats-summary__value" id="stats-bookmarks">0</span>
+              <span class="stats-summary__label">保存</span>
+            </div>
+            <div class="stats-summary__item">
+              <span class="stats-summary__value" id="stats-streak">0</span>
+              <span class="stats-summary__label">連続</span>
+            </div>
+          </div>
+        </div>
+        <!-- アチーブメント一覧 -->
+        <div class="achievements-list" id="achievements-list">
+          <!-- アチーブメントがここに表示される -->
+        </div>
+      </div>
+    </aside>
+
+    <!-- ボトムナビゲーション -->
+    <nav class="bottom-nav" id="bottom-nav">
+      <button class="bottom-nav__btn" data-action="explore" title="探索">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <path d="M21 21l-4.35-4.35"/>
+        </svg>
+        <span class="bottom-nav__label">探索</span>
+      </button>
+      <button class="bottom-nav__btn bottom-nav__btn--primary" id="refresh-btn" title="新しいトピック">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        <span class="bottom-nav__label">再読み込み</span>
+      </button>
+      <button class="bottom-nav__btn" data-action="library" title="ライブラリ">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <span class="bottom-nav__label">ライブラリ</span>
+      </button>
+      <button class="bottom-nav__btn" data-action="profile" title="プロフィール">
+        <svg class="bottom-nav__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span class="bottom-nav__label">マイページ</span>
+      </button>
+    </nav>
+
+    <!-- オーバーレイ -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- トースト通知 -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <!-- JavaScript -->
+  <script src="js/config.js"></script>
+  <script src="js/utils/helpers.js"></script>
+  <script src="js/utils/error-handler.js"></script>
+  <script src="js/api/wikipedia.js"></script>
+  <script src="js/services/storage.js"></script>
+  <script src="js/services/exploration-stats.js"></script>
+  <script src="js/services/interest.js"></script>
+  <script src="js/services/topic-generator.js"></script>
+  <script src="js/components/topic-card.js"></script>
+  <script src="js/components/cloud.js"></script>
+  <script src="js/components/article.js"></script>
+  <script src="js/components/history.js"></script>
+  <script src="js/components/bookmarks.js"></script>
+  <script src="js/components/onboarding.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
