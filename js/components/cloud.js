@@ -13,6 +13,22 @@ class CloudView {
     this.onExpand = options.onExpand || (() => {});
     this.isAnimating = false;
     this.draggingCard = null;
+
+    // 物理エンジン
+    this.physics = null;
+  }
+
+  /**
+   * 物理エンジンを初期化または更新
+   */
+  _initPhysics() {
+    const rect = this.container.getBoundingClientRect();
+    if (!this.physics) {
+      this.physics = new PhysicsSimulation(rect.width, rect.height);
+      this.physics.start();
+    } else {
+      this.physics.updateContainerSize(rect.width, rect.height);
+    }
   }
 
   /**
@@ -25,26 +41,23 @@ class CloudView {
     // 既存のカードをクリア
     this.clear();
 
+    // 物理エンジンを初期化/更新
+    this._initPhysics();
+
     this.topics = topics;
 
-    // ページビュー数を取得して人気度サイズを設定
-    try {
-      const titles = topics.map(t => t.title);
-      const pageviewsMap = await WikipediaAPI.getBatchPageviews(titles);
-
-      topics.forEach(topic => {
-        const views = pageviewsMap.get(topic.title) || 0;
-        topic.pageviews = views;
-        topic.popularitySize = WikipediaAPI.getPopularitySize(views);
-      });
-    } catch (error) {
-      console.warn('Failed to fetch pageviews, using default size:', error);
-      // フォールバック: ランダムにサイズを割り当て（視覚的多様性のため）
-      topics.forEach(topic => {
-        const rand = Math.random();
-        topic.popularitySize = rand < 0.2 ? 'large' : (rand < 0.5 ? 'medium' : 'small');
-      });
-    }
+    // ランダムにサイズを割り当て（視覚的多様性のため）
+    // small: 35%, medium: 45%, large: 20%
+    topics.forEach(topic => {
+      const rand = Math.random();
+      if (rand < 0.20) {
+        topic.popularitySize = 'large';
+      } else if (rand < 0.65) {
+        topic.popularitySize = 'medium';
+      } else {
+        topic.popularitySize = 'small';
+      }
+    });
 
     // コンテナのサイズを取得
     const rect = this.container.getBoundingClientRect();
@@ -66,26 +79,35 @@ class CloudView {
     // 重複を解消
     this.positions = Helpers.resolveOverlaps(this.positions, cardSize, cardSize);
 
-    // カードを順次作成
+    // カードを一括作成（DocumentFragmentでバッチ化）
+    const fragment = document.createDocumentFragment();
+
     topics.forEach((topic, index) => {
-      setTimeout(() => {
-        const card = new TopicCard(topic, {
-          position: this.positions[index],
-          onDeepDive: this.onDeepDive,
-          onExpand: this.onExpand,
-          onDragStart: (card) => this._handleCardDragStart(card),
-          onDragEnd: (card) => this._handleCardDragEnd(card)
-        });
+      const card = new TopicCard(topic, {
+        position: this.positions[index],
+        onDeepDive: this.onDeepDive,
+        onExpand: this.onExpand,
+        onDragStart: (card) => this._handleCardDragStart(card),
+        onDragEnd: (card, velocity) => this._handleCardDragEnd(card, velocity),
+        onDragMove: (card) => this._handleCardDragMove(card)
+      });
 
-        this.cards.push(card);
-        this.container.appendChild(card.render());
+      this.cards.push(card);
+      const cardEl = card.render();
+      fragment.appendChild(cardEl);
 
-        // 最後のカードが追加されたらアニメーション完了
-        if (index === topics.length - 1) {
-          this.isAnimating = false;
-        }
-      }, index * 50); // 50ms間隔で順次表示
+      // 物理エンジンにボディを追加
+      if (this.physics) {
+        const actualCardSize = this._getCardSizeForPopularity(topic.popularitySize);
+        const centerX = this.positions[index].x + actualCardSize / 2;
+        const centerY = this.positions[index].y + actualCardSize / 2;
+        this.physics.addBody(cardEl, centerX, centerY, actualCardSize / 2);
+      }
     });
+
+    // 一括でDOMに追加
+    this.container.appendChild(fragment);
+    this.isAnimating = false;
   }
 
   /**
@@ -95,12 +117,29 @@ class CloudView {
     this.draggingCard = card;
     // ドラッグ中のカードを最前面に
     card.element.style.zIndex = 100;
+    // 物理エンジンにドラッグ状態を通知
+    if (this.physics) {
+      this.physics.setDragging(card.element, true);
+    }
+  }
+
+  /**
+   * カードのドラッグ中ハンドラ
+   */
+  _handleCardDragMove(card) {
+    // 物理エンジンに位置を通知
+    if (this.physics) {
+      const cardSize = this._getCardSizeForPopularity(card.topic.popularitySize);
+      const centerX = card.position.x + cardSize / 2;
+      const centerY = card.position.y + cardSize / 2;
+      this.physics.setPosition(card.element, centerX, centerY);
+    }
   }
 
   /**
    * カードのドラッグ終了ハンドラ
    */
-  _handleCardDragEnd(card) {
+  _handleCardDragEnd(card, velocity = { x: 0, y: 0 }) {
     this.draggingCard = null;
     card.element.style.zIndex = '';
 
@@ -112,6 +151,15 @@ class CloudView {
         x: card.position.x,
         y: card.position.y
       };
+    }
+
+    // 物理エンジンにドラッグ終了と速度を通知
+    if (this.physics) {
+      this.physics.setDragging(card.element, false);
+      // フリック速度を適用（勢いを与える）
+      if (Math.abs(velocity.x) > 50 || Math.abs(velocity.y) > 50) {
+        this.physics.setVelocity(card.element, velocity.x * 2, velocity.y * 2);
+      }
     }
   }
 
@@ -260,17 +308,27 @@ class CloudView {
     this.cards = [];
     this.topics = [];
     this.positions = [];
+    // 物理エンジンもクリア
+    if (this.physics) {
+      this.physics.clear();
+    }
   }
 
   /**
    * リサイズ時の再配置
    */
   handleResize() {
-    if (this.topics.length === 0) return;
-
     const rect = this.container.getBoundingClientRect();
     const containerWidth = rect.width;
     const containerHeight = rect.height;
+
+    // 物理エンジンのコンテナサイズを更新
+    if (this.physics) {
+      this.physics.updateContainerSize(containerWidth, containerHeight);
+    }
+
+    if (this.topics.length === 0) return;
+
     const cardSize = this._getCardSize();
 
     // 位置を再計算
@@ -288,6 +346,11 @@ class CloudView {
     this.cards.forEach((card, index) => {
       if (this.positions[index]) {
         card.updatePosition(this.positions[index].x, this.positions[index].y);
+        // 物理エンジンの位置も更新
+        const actualCardSize = this._getCardSizeForPopularity(card.topic.popularitySize);
+        const centerX = this.positions[index].x + actualCardSize / 2;
+        const centerY = this.positions[index].y + actualCardSize / 2;
+        this.physics.setPosition(card.element, centerX, centerY);
       }
     });
   }
@@ -297,5 +360,9 @@ class CloudView {
    */
   destroy() {
     this.clear();
+    if (this.physics) {
+      this.physics.stop();
+      this.physics = null;
+    }
   }
 }

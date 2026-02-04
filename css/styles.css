@@ -15,12 +15,12 @@
   --bg-card-hover: #FFF8F0;
   --bg-elevated: #FFFFFF;
 
-  /* アクセントカラー（オレンジ・ブラウン系） */
-  --accent-primary: #E07830;
-  --accent-primary-light: #F5924A;
-  --accent-primary-dark: #C86820;
-  --accent-secondary: #8B5A2B;
-  --accent-glow: rgba(224, 120, 48, 0.2);
+  /* アクセントカラー（ゴールド・アンバー系） */
+  --accent-primary: #D4872C;
+  --accent-primary-light: #E9A854;
+  --accent-primary-dark: #B8741F;
+  --accent-secondary: #8B6914;
+  --accent-glow: rgba(212, 135, 44, 0.25);
 
   /* テキストカラー */
   --text-primary: #3D3024;
@@ -31,9 +31,9 @@
   /* ボーダーとシャドウ */
   --border-subtle: rgba(139, 90, 43, 0.1);
   --border-medium: rgba(139, 90, 43, 0.2);
-  --shadow-soft: 0 4px 20px rgba(139, 90, 43, 0.1);
-  --shadow-medium: 0 8px 32px rgba(139, 90, 43, 0.15);
-  --shadow-glow: 0 0 30px rgba(224, 120, 48, 0.15);
+  --shadow-soft: 0 8px 32px rgba(139, 90, 43, 0.12), 0 2px 8px rgba(139, 90, 43, 0.08);
+  --shadow-medium: 0 16px 48px rgba(139, 90, 43, 0.18), 0 4px 12px rgba(139, 90, 43, 0.1);
+  --shadow-glow: 0 0 40px rgba(212, 135, 44, 0.2);
 
   /* スペーシング */
   --space-xs: 4px;
@@ -88,7 +88,8 @@ html {
 
 body {
   font-family: var(--font-family);
-  background: var(--bg-dark);
+  background: linear-gradient(135deg, #FAF7F2 0%, #F5EDE0 50%, #FAF7F2 100%);
+  background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
@@ -113,10 +114,11 @@ body {
   left: 0;
   right: 0;
   height: var(--header-height);
-  background: rgba(250, 247, 242, 0.95);
+  background: linear-gradient(180deg, rgba(250, 247, 242, 0.98) 0%, rgba(250, 247, 242, 0.92) 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 0 rgba(139, 90, 43, 0.08), 0 4px 20px rgba(139, 90, 43, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -754,18 +756,19 @@ body {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
+  background: linear-gradient(145deg, #FFFFFF 0%, #FBF8F3 100%);
+  border: 1px solid rgba(212, 135, 44, 0.15);
   border-radius: var(--radius-full);
   padding: var(--space-xs) var(--space-md) var(--space-xs) var(--space-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
+  box-shadow: 0 4px 16px rgba(139, 90, 43, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .level-badge:hover {
-  background: var(--bg-card-hover);
+  background: linear-gradient(145deg, #FFFFFF 0%, #FFF8F0 100%);
   border-color: var(--accent-primary);
-  box-shadow: var(--shadow-soft);
+  box-shadow: 0 6px 24px rgba(139, 90, 43, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.9);
 }
 
 .level-badge__icon {

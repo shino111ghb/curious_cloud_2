@@ -14,17 +14,17 @@ class ExplorationStatsService {
 
   static LEVELS = [
     { level: 1, name: '好奇心の芽生え', minPoints: 0, icon: '🌱' },
-    { level: 2, name: '知識の探求者', minPoints: 100, icon: '📖' },
-    { level: 3, name: '学びの旅人', minPoints: 300, icon: '🚶' },
-    { level: 4, name: '知識の収集家', minPoints: 600, icon: '📚' },
-    { level: 5, name: '探究の達人', minPoints: 1000, icon: '🔍' },
-    { level: 6, name: '博識の探検家', minPoints: 1500, icon: '🧭' },
-    { level: 7, name: '知恵の求道者', minPoints: 2200, icon: '🎓' },
-    { level: 8, name: '学問の冒険家', minPoints: 3000, icon: '🏔️' },
-    { level: 9, name: '知識の賢者', minPoints: 4000, icon: '🦉' },
-    { level: 10, name: '好奇心マスター', minPoints: 5500, icon: '⭐' },
-    { level: 11, name: '知の探究者', minPoints: 7500, icon: '🌟' },
-    { level: 12, name: '叡智の守護者', minPoints: 10000, icon: '👑' }
+    { level: 2, name: '知識の探求者', minPoints: 1000, icon: '📖' },
+    { level: 3, name: '学びの旅人', minPoints: 3000, icon: '🚶' },
+    { level: 4, name: '知識の収集家', minPoints: 6000, icon: '📚' },
+    { level: 5, name: '探究の達人', minPoints: 10000, icon: '🔍' },
+    { level: 6, name: '博識の探検家', minPoints: 15000, icon: '🧭' },
+    { level: 7, name: '知恵の求道者', minPoints: 22000, icon: '🎓' },
+    { level: 8, name: '学問の冒険家', minPoints: 30000, icon: '🏔️' },
+    { level: 9, name: '知識の賢者', minPoints: 40000, icon: '🦉' },
+    { level: 10, name: '好奇心マスター', minPoints: 55000, icon: '⭐' },
+    { level: 11, name: '知の探究者', minPoints: 75000, icon: '🌟' },
+    { level: 12, name: '叡智の守護者', minPoints: 100000, icon: '👑' }
   ];
 
   // ========================================

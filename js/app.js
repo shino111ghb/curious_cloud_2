@@ -487,12 +487,7 @@ class App {
   _checkDailyVisit() {
     const result = this.explorationStats.recordDailyVisit();
 
-    if (!result.alreadyVisited && result.currentStreak > 1) {
-      // 連続ログインを通知
-      setTimeout(() => {
-        this._showPointsNotification(`${result.currentStreak}日連続ログイン！`, 5);
-      }, 1000);
-    }
+    // 連続ログインの通知は廃止（ポイントは内部で加算される）
 
     // 新規アチーブメントがあれば表示
     if (result.newAchievements?.length > 0) {
@@ -509,14 +504,8 @@ class App {
     // レベルバッジを更新
     this._updateLevelBadge();
 
-    // ポイント獲得通知
+    // レベルアップチェック（ポイント通知は廃止）
     if (result.results) {
-      const totalPoints = result.results.reduce((sum, r) => sum + (r.pointsAdded || 0), 0);
-      if (totalPoints > 0) {
-        this._showPointsNotification(`+${totalPoints}pt`, totalPoints);
-      }
-
-      // レベルアップチェック
       for (const r of result.results) {
         if (r.leveledUp) {
           setTimeout(() => {
@@ -525,14 +514,10 @@ class App {
           break;
         }
       }
-    } else if (result.result?.pointsAdded) {
-      this._showPointsNotification(`+${result.result.pointsAdded}pt`, result.result.pointsAdded);
-
-      if (result.result.leveledUp) {
-        setTimeout(() => {
-          this._showLevelUpNotification(result.result.newLevel);
-        }, 500);
-      }
+    } else if (result.result?.leveledUp) {
+      setTimeout(() => {
+        this._showLevelUpNotification(result.result.newLevel);
+      }, 500);
     }
 
     // 新規アチーブメント通知

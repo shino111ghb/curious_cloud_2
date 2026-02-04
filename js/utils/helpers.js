@@ -165,7 +165,7 @@ const Helpers = {
   /**
    * 位置の重複を解消
    */
-  resolveOverlaps(positions, cardWidth = 180, cardHeight = 150, iterations = 10) {
+  resolveOverlaps(positions, cardWidth = 180, cardHeight = 150, iterations = 3) {
     const minDistance = Math.sqrt(cardWidth * cardWidth + cardHeight * cardHeight) * 0.6;
 
     for (let iter = 0; iter < iterations; iter++) {

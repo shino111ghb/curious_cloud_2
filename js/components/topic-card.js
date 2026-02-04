@@ -11,6 +11,7 @@ class TopicCard {
     this.onExpand = options.onExpand || (() => {});
     this.onDragStart = options.onDragStart || (() => {});
     this.onDragEnd = options.onDragEnd || (() => {});
+    this.onDragMove = options.onDragMove || (() => {});
     this.element = null;
 
     // ドラッグ関連
@@ -18,6 +19,11 @@ class TopicCard {
     this.hasMoved = false;
     this.dragOffset = { x: 0, y: 0 };
     this.startPos = { x: 0, y: 0 };
+
+    // 速度計算用
+    this.lastPos = { x: 0, y: 0 };
+    this.lastTime = 0;
+    this.velocity = { x: 0, y: 0 };
 
     // イベントハンドラをバインド（後で削除できるように）
     this._boundHandleDragMove = this._handleDragMove.bind(this);
@@ -203,6 +209,9 @@ class TopicCard {
         this.hasMoved = true;
         this.element.classList.add('dragging');
         this.onDragStart(this);
+        // 速度計算の初期化
+        this.lastPos = { x: clientX, y: clientY };
+        this.lastTime = performance.now();
       }
 
       e.preventDefault();
@@ -226,6 +235,19 @@ class TopicCard {
       // 位置を更新
       this.position.x = newX;
       this.position.y = newY;
+
+      // 速度を計算（フリック用）
+      const now = performance.now();
+      const dt = (now - this.lastTime) / 1000;
+      if (dt > 0) {
+        this.velocity.x = (clientX - this.lastPos.x) / dt;
+        this.velocity.y = (clientY - this.lastPos.y) / dt;
+      }
+      this.lastPos = { x: clientX, y: clientY };
+      this.lastTime = now;
+
+      // ドラッグ中を通知
+      this.onDragMove(this);
     }
   }
 
@@ -245,7 +267,12 @@ class TopicCard {
 
     if (this.hasMoved) {
       this.element.classList.remove('dragging');
-      this.onDragEnd(this);
+
+      // 速度を渡してドラッグ終了を通知
+      this.onDragEnd(this, { x: this.velocity.x, y: this.velocity.y });
+
+      // 速度をリセット
+      this.velocity = { x: 0, y: 0 };
 
       // クリックイベントの発火を防ぐために少し遅延
       setTimeout(() => {

@@ -38,17 +38,20 @@ class TopicGenerator {
     const distribution = this.interest.getTopicDistribution(count);
     const topics = [];
 
-    // カテゴリごとにシードトピックから取得
-    for (const [category, amount] of Object.entries(distribution)) {
-      if (category === '_random' || amount === 0) continue;
+    // カテゴリごとのAPI呼び出しを並列化
+    const categoryPromises = Object.entries(distribution)
+      .filter(([category, amount]) => category !== '_random' && amount > 0)
+      .map(async ([category, amount]) => {
+        try {
+          return await this._getTopicsFromSeeds(category, amount);
+        } catch (error) {
+          console.warn(`カテゴリ ${category} のトピック取得に失敗:`, error);
+          return [];
+        }
+      });
 
-      try {
-        const categoryTopics = await this._getTopicsFromSeeds(category, amount);
-        topics.push(...categoryTopics);
-      } catch (error) {
-        console.warn(`カテゴリ ${category} のトピック取得に失敗:`, error);
-      }
-    }
+    const results = await Promise.all(categoryPromises);
+    results.forEach(categoryTopics => topics.push(...categoryTopics));
 
     // 足りない分はランダムトピックを追加
     const randomSlots = distribution._random || 0;
@@ -79,15 +82,18 @@ class TopicGenerator {
     const topics = [];
     const perInterest = Math.ceil(count / interests.length);
 
-    for (const interest of interests) {
+    // 興味カテゴリのAPI呼び出しを並列化
+    const interestPromises = interests.map(async (interest) => {
       try {
-        // シードトピックから取得
-        const categoryTopics = await this._getTopicsFromSeeds(interest, perInterest);
-        topics.push(...categoryTopics);
+        return await this._getTopicsFromSeeds(interest, perInterest);
       } catch (error) {
         console.warn(`初期トピック取得エラー (${interest}):`, error);
+        return [];
       }
-    }
+    });
+
+    const results = await Promise.all(interestPromises);
+    results.forEach(categoryTopics => topics.push(...categoryTopics));
 
     // 足りない分はランダムで補完
     if (topics.length < count) {
